@@ -1,12 +1,9 @@
 var express = require('express');
 var app = express();
-
-['MONGODB_URI'].map(k => {
-  if (! process.env[k]) {
-    console.error('Missing environment variable', k, 'Did your source env.sh');
-    process.exit(1);
-  }
-});
+var models = require('./models/models');
+var Item = models.Item;
+var User = models.User;
+var Design = models.Design;
 
 var hbs = require('express-handlebars')({
   defaultLayout: 'main',
@@ -19,49 +16,12 @@ var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(bodyParser.json());
 
-var mongoose = require('mongoose');
-mongoose.connect(process.env.MONGODB_URI);
-var Item = mongoose.model('Item', {
-  articleType: {
-    type: String,
-  },
-  color: String,
-  imageurl: {
-    type: String,
-  },
-  upc: String,
-  description: String,
-});
-var User = mongoose.model('User', {
-  username: String,
-  password: String,
-  closet: {
-    type:Array,
-    default: [],
-  },
-  designs: {
-    type: Array,
-    default: [],
-  },
-});
-var Design = mongoose.model('Design', {
-  user: String,
-  title: String,
-  style: {
-    type:Array,
-    default: [],
-  },
-  rating: Number,
-  items: {
-    type:Array,
-    default: [],
-  },
-});
+
 
 app.post('/users/register', function(req,res){ //For user Registration
   var newUser = new User({
     username:req.body.username,
-    password:req.body.password,
+    password:req.body.password
   });
   newUser.save(function(err){
     if (err){
@@ -87,6 +47,7 @@ app.post('/users/login', function(req,res){ //Checking to see if user is logged 
   });
 });
 
+//TODO: make the items field of a user also be a reference but deal with that later
 app.get('/all/items/:username', function(req, res) { //Return users closet
   User.findOne({username:req.params.username},function(err,user){
     if(err || !user){
@@ -94,6 +55,7 @@ app.get('/all/items/:username', function(req, res) { //Return users closet
     }else{
       res.status(200).json(user.closet);
     }
+
   });
 });
 
@@ -107,12 +69,25 @@ app.get('/all/designs', function(req, res) { //returns all designs (Newsfeed)
     }
   });
 });
+
 app.get('/all/designs/:username', function(req, res) { //returns designs for a specific user
   User.findOne({username:req.params.username},function(err,user){
     if (err || !user){
       res.status(400).json({error:err});
     }else{
-      res.status(200).json(user.designs);
+      user.getDesigns(function(err, designs){
+        if(err){
+          // return next(err);
+          res.status(400).json({error:err});
+        } else{
+          if(designs){
+            res.status(200).json(user.designs);
+          } else {
+            res.status(400).json({error:err});
+          }
+        }
+      });
+
     }
   });
 });
@@ -169,25 +144,19 @@ app.post('/new/designs/:username', function(req, res) { //adds new design
       var body = req.body;
       var newDesign = new Design({
         user: req.params.username,
+        userId: user._id,
         style: body.styles,
         rating: body.rating,
         items: body.items,
         title: body.title,
+        gender: body.gender
       });
       newDesign.save(function(err, design){
         if (err){
           res.status(400).json({error:err});
         }
         else{
-          user.designs.push(design);
-          user.save(function(err){
-            if (err){
-              res.status(400).json({error:err});
-            }
-            else{
-              res.status(200).json({success:true});
-            }
-          });
+          res.status(200).json({success:true, design: design});
         }
       });
     }else{
@@ -197,19 +166,24 @@ app.post('/new/designs/:username', function(req, res) { //adds new design
 });
 
 app.post('/designs/voteup/:designId', function(req,res){ //upvote a design
+  //SEND THE USERNAME INSIDE THE BODY OF THE REQUEST SO THAT YOU CAN UPDATE THE USERS OVERALL rating
+  // req.body.usernamedesignerRating
+
   Design.findOne({_id:req.params.designId},function(err,design){
-    if (design){
-      design.rating = design.rating + 1;
-      design.save(function(err){
-        if (err){
-          res.status(400).json({error:err});
-        }
-        else{
-          res.status(200).json({success:true});
-        }
-      });
-    }else{
+    if(err){
       res.status(400).json({error:err});
+    } else {
+      if (design){
+        design.rating = design.rating + 1;
+        design.save(function(err){
+          if (err){
+            res.status(400).json({error:err});
+          }
+          else{
+            res.status(200).json({success:true, rating: design.rating});
+          }
+        });
+      }
     }
   });
 });
@@ -223,7 +197,7 @@ app.post('/designs/votedown/:designId', function(req,res){ //downvote a design
           res.status(400).json({error:err});
         }
         else{
-          res.status(200).json({success:true});
+          res.status(200).json({success:true, rating: design.rating});
         }
       });
     }else{
