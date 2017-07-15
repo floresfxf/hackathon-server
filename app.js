@@ -93,24 +93,25 @@ app.get('/all/items/:username', function(req, res) { //Return users closet
   });
 });
 
-app.get('/all/:username', function(req, res) { //returns user model
-  User.findOne({username:req.params.username},function(err,user){
-    res.json(user);
-  });
-});
-
 app.get('/all/designs', function(req, res) { //returns all designs (Newsfeed)
+  console.log('here');
   Design.find({}, function(err,designs){
     if (err){
       res.status(500).json({error:err});
     }
-    console.log(designs);
+
     res.json(designs);
   });
 });
 app.get('/all/designs/:username', function(req, res) { //returns designs for a specific user
   User.findOne({username:req.params.username},function(err,user){
     res.json(user.designs);
+  });
+});
+
+app.get('/all/:username', function(req, res) { //returns user model
+  User.findOne({username:req.params.username},function(err,user){
+    res.json(user);
   });
 });
 
