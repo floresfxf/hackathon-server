@@ -65,10 +65,10 @@ app.post('/users/register', function(req,res){ //For user Registration
   });
   newUser.save(function(err){
     if (err){
-      res.json({error:err});
+      res.status(400).json({error:err});
     }
     else{
-      res.json({success:true});
+      res.status(200).json({success:true});
     }
   });
 });
@@ -76,12 +76,12 @@ app.post('/users/register', function(req,res){ //For user Registration
 app.post('/users/login', function(req,res){ //Checking to see if user is logged in
   User.findOne({username:req.body.username},function(err,obj){
     if (err || !obj){
-      res.json({error:err});
+      res.status(400).json({error:err});
     }else{
       if (req.body.password  === obj.password){
-        res.json({success:true});
+        res.status(200).json({success:true});
       }else{
-        res.json({error:"Incorrect Password"});
+        res.status(401).json({error:"Incorrect Password"});
       }
     }
   });
@@ -89,7 +89,7 @@ app.post('/users/login', function(req,res){ //Checking to see if user is logged 
 
 app.get('/all/items/:username', function(req, res) { //Return users closet
   User.findOne({username:req.params.username},function(err,user){
-    res.json(user.closet);
+    res.status(200).json(user.closet);
   });
 });
 
@@ -97,21 +97,29 @@ app.get('/all/designs', function(req, res) { //returns all designs (Newsfeed)
   console.log('here');
   Design.find({}, function(err,designs){
     if (err){
-      res.status(500).json({error:err});
+      res.status(400).json({error:err});
+    }else{
+      res.status(200).json(designs);
     }
-
-    res.json(designs);
   });
 });
 app.get('/all/designs/:username', function(req, res) { //returns designs for a specific user
   User.findOne({username:req.params.username},function(err,user){
-    res.json(user.designs);
+    if (err){
+      res.status(400).json({error:err});
+    }else{
+      res.status(200).json(user.designs);
+    }
   });
 });
 
 app.get('/all/:username', function(req, res) { //returns user model
   User.findOne({username:req.params.username},function(err,user){
-    res.json(user);
+    if (err){
+      res.status(400).json({error:err});
+    }else{
+      res.status(200).json(user);
+    }
   });
 });
 
@@ -129,17 +137,17 @@ app.post('/new/items/:username', function(req, res) { //Adds new item to a users
     });
     newItem.save(function(err, item){
       if (err){
-        res.json({error:err});
+        res.status(400).json({error:err});
       }
       else{
         console.log(user);
         user.closet.push(item);
         user.save(function(err){
           if (err){
-            res.json({error:err});
+            res.status(400).json({error:err});
           }
           else{
-            res.json({success:true});
+            res.status(200).json({success:true});
           }
         });
       }
@@ -159,16 +167,16 @@ app.post('/new/designs/:username', function(req, res) { //adds new design
     });
     newDesign.save(function(err, design){
       if (err){
-        res.json({error:err});
+        res.status(400).json({error:err});
       }
       else{
         user.designs.push(design);
         user.save(function(err){
           if (err){
-            res.json({error:err});
+            res.status(400).json({error:err});
           }
           else{
-            res.json({success:true});
+            res.status(200).json({success:true});
           }
         });
       }
@@ -181,10 +189,10 @@ app.post('/designs/voteup/:designId', function(req,res){ //upvote a design
     design.rating = design.rating + 1;
     design.save(function(err){
       if (err){
-        res.json({error:err});
+        res.status(400).json({error:err});
       }
       else{
-        res.json({success:true});
+        res.status(200).json({success:true});
       }
     });
   });
@@ -195,10 +203,10 @@ app.post('/designs/votedown/:designId', function(req,res){ //downvote a design
     design.rating = design.rating - 1;
     design.save(function(err){
       if (err){
-        res.json({error:err});
+        res.status(400).json({error:err});
       }
       else{
-        res.json({success:true});
+        res.status(200).json({success:true});
       }
     });
   });
