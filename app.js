@@ -104,6 +104,7 @@ app.get('/all/designs', function(req, res) { //returns all designs (Newsfeed)
     if (err){
       res.status(500).json({error:err});
     }
+    console.log(designs);
     res.json(designs);
   });
 });
