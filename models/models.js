@@ -35,12 +35,7 @@ var userSchema = mongoose.Schema({
 
 //RETRIEVE ALL DESIGNS BY A GIVEN USER
 //FIND ALL DESIGNS THAT HAVE A MATCHING USERID
-userSchema.methods.getDesigns = function (callback){
-  var self=this;
-  Design.find({userId: self._id}).exec(function(err,designs){
-    callback(err, designs);
-  });
-};
+
 
 userSchema.virtual("rating").get(function(){
   self.getDesigns(this._id, function(err, designs) {
@@ -80,11 +75,19 @@ var designSchema = mongoose.Schema({
   },
 });
 
+var Design = mongoose.model('Design', designSchema);
+userSchema.methods.getDesigns = function (callback){
+  var self=this;
+  Design.find({userId: self._id}).exec(function(err,designs){
+    callback(err, designs);
+  });
+};
+
 // var User = mongoose.model('User', userSchema);
-// var Design = mongoose.model('Design', designSchema);
+
 // var Item = mongoose.model('User', itemSchema);
 module.exports = {
   User: mongoose.model('User', userSchema),
-  Design: mongoose.model('Design', designSchema),
+  Design:Design,
   Item: mongoose.model('Item', itemSchema),
 };
