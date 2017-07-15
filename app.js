@@ -100,7 +100,10 @@ app.get('/all/:username', function(req, res) { //returns user model
 });
 
 app.get('/all/designs', function(req, res) { //returns all designs (Newsfeed)
-  Design.find(function(err,designs){
+  Design.find({}, function(err,designs){
+    if (err){
+      res.status(500).json({error:err});
+    }
     res.json(designs);
   });
 });
