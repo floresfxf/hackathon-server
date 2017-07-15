@@ -89,14 +89,18 @@ app.post('/users/login', function(req,res){ //Checking to see if user is logged 
 
 app.get('/all/items/:username', function(req, res) { //Return users closet
   User.findOne({username:req.params.username},function(err,user){
-    res.status(200).json(user.closet);
+    if(err || !user){
+      res.status(400).json({error:err});
+    }else{
+      res.status(200).json(user.closet);
+    }
   });
 });
 
 app.get('/all/designs', function(req, res) { //returns all designs (Newsfeed)
   console.log('here');
   Design.find({}, function(err,designs){
-    if (err){
+    if (err || !designs){
       res.status(400).json({error:err});
     }else{
       res.status(200).json(designs);
@@ -105,7 +109,7 @@ app.get('/all/designs', function(req, res) { //returns all designs (Newsfeed)
 });
 app.get('/all/designs/:username', function(req, res) { //returns designs for a specific user
   User.findOne({username:req.params.username},function(err,user){
-    if (err){
+    if (err || !user){
       res.status(400).json({error:err});
     }else{
       res.status(200).json(user.designs);
@@ -115,7 +119,7 @@ app.get('/all/designs/:username', function(req, res) { //returns designs for a s
 
 app.get('/all/:username', function(req, res) { //returns user model
   User.findOne({username:req.params.username},function(err,user){
-    if (err){
+    if (err || !user){
       res.status(400).json({error:err});
     }else{
       res.status(200).json(user);
@@ -127,88 +131,104 @@ app.get('/all/:username', function(req, res) { //returns user model
 app.post('/new/items/:username', function(req, res) { //Adds new item to a users closet
   //TODO: Add links from item to user
   User.findOne({username:req.params.username},function(err,user){
-    var body = req.body;
-    var newItem = new Item({
-      articleType: body.articleType,
-      color: body.color,
-      imageurl: body.imageurl,
-      upc: body.upc,
-      description: body.description
-    });
-    newItem.save(function(err, item){
-      if (err){
-        res.status(400).json({error:err});
-      }
-      else{
-        console.log(user);
-        user.closet.push(item);
-        user.save(function(err){
-          if (err){
-            res.status(400).json({error:err});
-          }
-          else{
-            res.status(200).json({success:true});
-          }
-        });
-      }
-    });
+    if (user){
+      var body = req.body;
+      var newItem = new Item({
+        articleType: body.articleType,
+        color: body.color,
+        imageurl: body.imageurl,
+        upc: body.upc,
+        description: body.description
+      });
+      newItem.save(function(err, item){
+        if (err){
+          res.status(400).json({error:err});
+        }
+        else{
+          console.log(user);
+          user.closet.push(item);
+          user.save(function(err){
+            if (err){
+              res.status(400).json({error:err});
+            }
+            else{
+              res.status(200).json({success:true});
+            }
+          });
+        }
+      });
+    }else{
+      res.status(400).json({error:err});
+    }
   });
 });
 
 app.post('/new/designs/:username', function(req, res) { //adds new design
   User.findOne({username:req.params.username},function(err,user){
-    var body = req.body;
-    var newDesign = new Design({
-      user: req.params.username,
-      style: body.styles,
-      rating: body.rating,
-      items: body.items,
-      title: body.title,
-    });
-    newDesign.save(function(err, design){
-      if (err){
-        res.status(400).json({error:err});
-      }
-      else{
-        user.designs.push(design);
-        user.save(function(err){
-          if (err){
-            res.status(400).json({error:err});
-          }
-          else{
-            res.status(200).json({success:true});
-          }
-        });
-      }
-    });
+    if (user){
+      var body = req.body;
+      var newDesign = new Design({
+        user: req.params.username,
+        style: body.styles,
+        rating: body.rating,
+        items: body.items,
+        title: body.title,
+      });
+      newDesign.save(function(err, design){
+        if (err){
+          res.status(400).json({error:err});
+        }
+        else{
+          user.designs.push(design);
+          user.save(function(err){
+            if (err){
+              res.status(400).json({error:err});
+            }
+            else{
+              res.status(200).json({success:true});
+            }
+          });
+        }
+      });
+    }else{
+      res.status(400).json({error:err});
+    }
   });
 });
 
 app.post('/designs/voteup/:designId', function(req,res){ //upvote a design
   Design.findOne({_id:req.params.designId},function(err,design){
-    design.rating = design.rating + 1;
-    design.save(function(err){
-      if (err){
-        res.status(400).json({error:err});
-      }
-      else{
-        res.status(200).json({success:true});
-      }
-    });
+    if (design){
+      design.rating = design.rating + 1;
+      design.save(function(err){
+        if (err){
+          res.status(400).json({error:err});
+        }
+        else{
+          res.status(200).json({success:true});
+        }
+      });
+    }else{
+      res.status(400).json({error:err});
+    }
   });
 });
 
 app.post('/designs/votedown/:designId', function(req,res){ //downvote a design
   Design.findOne({_id:req.params.designId},function(err,design){
-    design.rating = design.rating - 1;
-    design.save(function(err){
-      if (err){
-        res.status(400).json({error:err});
-      }
-      else{
-        res.status(200).json({success:true});
-      }
-    });
+    if (design){
+      design.rating = design.rating - 1;
+      design.save(function(err){
+        if (err){
+          res.status(400).json({error:err});
+        }
+        else{
+          res.status(200).json({success:true});
+        }
+      });
+    }else{
+      res.status(400).json({error:err});
+    }
   });
 });
 
