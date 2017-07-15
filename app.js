@@ -150,6 +150,7 @@ app.post('/new/designs/:username', function(req, res) { //adds new design
       style: body.styles,
       rating: body.rating,
       items: body.items,
+      title: body.title,
     });
     newDesign.save(function(err, design){
       if (err){
