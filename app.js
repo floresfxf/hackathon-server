@@ -21,14 +21,14 @@ app.use(bodyParser.urlencoded({extended: false}));
 var mongoose = require('mongoose');
 mongoose.connect(process.env.MONGODB_URI);
 var Item = mongoose.model('Item', {
-  type: {
+  articleType: {
     type: String,
   },
   color: String,
   imageurl: {
     type: String,
   },
-  upc: Number,
+  upc: String,
   description: String,
 });
 var User = mongoose.model('User', {
@@ -114,7 +114,7 @@ app.post('/new/items/:username', function(req, res) { //Adds new item to a users
   User.findOne({username:req.params.username},function(err,user){
     var body = req.body;
     var newItem = new Item({
-      type: body.type,
+      articleType: body.articleType,
       color: body.color,
       imageurl: body.imageurl,
       upc: body.upc,
