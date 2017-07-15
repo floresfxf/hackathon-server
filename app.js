@@ -73,8 +73,8 @@ app.post('/users/register', function(req,res){ //For user Registration
 });
 
 app.post('/users/login', function(req,res){ //Checking to see if user is logged in
-  User.findOne({email:req.body.username},function(err,obj){
-    if (err || (Object.keys(obj).length === 0 && obj.constructor === Object)){
+  User.findOne({username:req.body.username},function(err,obj){
+    if (err || !obj){
       res.json({error:err});
     }else{
       if (req.body.password  === obj.password){
