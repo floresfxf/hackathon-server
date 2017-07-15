@@ -74,7 +74,7 @@ app.post('/users/register', function(req,res){ //For user Registration
 
 app.post('/users/login', function(req,res){ //Checking to see if user is logged in
   User.findOne({email:req.body.username},function(err,obj){
-    if (err){
+    if (err || (Object.keys(obj).length === 0 && obj.constructor === Object)){
       res.json({error:err});
     }else{
       if (req.body.password  === obj.password){
