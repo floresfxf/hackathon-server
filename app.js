@@ -46,6 +46,7 @@ var User = mongoose.model('User', {
 });
 var Design = mongoose.model('Design', {
   user: String,
+  title: String,
   style: {
     type:Array,
     default: [],
