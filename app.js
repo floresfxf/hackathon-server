@@ -8,12 +8,6 @@ var app = express();
   }
 });
 
-var hbs = require('express-handlebars')({
-  defaultLayout: 'main',
-  extname: '.hbs'
-});
-app.engine('hbs', hbs);
-app.set('view engine', 'hbs');
 
 var bodyParser = require('body-parser');
 app.use(bodyParser.urlencoded({extended: false}));
